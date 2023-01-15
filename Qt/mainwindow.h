@@ -1,7 +1,16 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+// local
+#include "api_handler.h"
+
+// qt
 #include <QMainWindow>
+
+// stdlib
+#include <memory>
+#include <string>
+#include <vector>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -17,5 +26,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    std::unique_ptr<APIHandler> m_apiHandler;
+    std::vector<std::string> m_summaries;
 };
 #endif // MAINWINDOW_H

@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QTextEdit" name="textEdit">
+     <widget class="QTextEdit" name="fileContent">
       <property name="readOnly">
        <bool>true</bool>
       </property>
@@ -31,14 +31,14 @@
        <widget class="QComboBox" name="filesComboBox"/>
       </item>
       <item>
-       <widget class="QLabel" name="fileNameLabel">
+       <widget class="QLabel" name="fileSummaryLabel">
         <property name="text">
          <string>...</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="downloadButton">
         <property name="text">
          <string>Download file</string>
         </property>

@@ -4,14 +4,14 @@ app = Flask(__name__)
 
 DUMMY_FILES = dict({
     "File1": {
-        "display-text": "Display text of file 1"
+        "summary": "Summary text of file 1"
     },
     "File2": {
-        "display-text": "Display text of file 2"
+        "summary": "Summary text of file 2"
     },
     "File3": {
-        "display-text": "Display text of file 3"
-    },
+        "summary": "Summary text of file 3"
+    }
 })
 
 @app.route("/api/files")

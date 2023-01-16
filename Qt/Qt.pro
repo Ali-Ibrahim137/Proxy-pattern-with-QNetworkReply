@@ -17,11 +17,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     api_handler.cpp \
+    api_proxy.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     api_handler.h \
+    api_proxy.h \
     mainwindow.h
 
 FORMS += \

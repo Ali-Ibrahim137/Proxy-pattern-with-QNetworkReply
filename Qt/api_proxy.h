@@ -1,46 +1,48 @@
 //---------------------------------------------------------------------------------------------------------------------
 /// @file
 ///
-/// @brief      API Handler Class
+/// @brief      API Proxy Class
 ///
 /// @author     Ali Ibrahim (ali103575@gmail.com)
 ///
 /// @version    1.0
-/// @date       01-15-2023
+/// @date       01-16-2023
 //---------------------------------------------------------------------------------------------------------------------
 
-#ifndef API_HANDLER_H
-#define API_HANDLER_H
+#ifndef API_PROXY_H
+#define API_PROXY_H
 
 // local
+#include "api_handler.h"
 
 // qt
 #include <QObject>
-#include <QNetworkAccessManager>
-#include <QNetworkReply>
-#include <QString>
 
 // stdlib
 #include <memory>
+#include <map>
 
-class APIHandler: public QObject
+class APIProxy: public QObject
 {
     Q_OBJECT
-
 public:
-    APIHandler(const QString &hostUrl);
-    ~APIHandler() = default;
+    APIProxy(const QString &hostUrl);
+    ~APIProxy() = default;
     void GetFilesList();
     void DownloadFile(const QString &fileName);
 
 Q_SIGNALS:
     void FilesListObtained(const QByteArray &data);
-    void FileObtained(const QByteArray &data, const QString &fileName);
+    void FileObtained(const QByteArray &data);
     void Error(const QString &message);
 
 private:
-    QString m_hostUrl;
-    std::unique_ptr<QNetworkAccessManager> m_networkManager;
+    void InitializeConnections();
+
+private:
+    std::unique_ptr<APIHandler> m_apiHandler;
+    std::map<std::string, QByteArray> m_filesMap;
+    QByteArray m_filesList;
 };
 
-#endif // API_HANDLER_H
+#endif // API_PROXY_H

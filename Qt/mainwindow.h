@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 // local
-#include "api_handler.h"
+#include "api_proxy.h"
 
 // qt
 #include <QMainWindow>
@@ -25,8 +25,11 @@ public:
     ~MainWindow();
 
 private:
+    void InitializeConnections();
+
+private:
     Ui::MainWindow *ui;
-    std::unique_ptr<APIHandler> m_apiHandler;
+    std::unique_ptr<APIProxy> m_apiProxy;
     std::vector<std::string> m_summaries;
 };
 #endif // MAINWINDOW_H

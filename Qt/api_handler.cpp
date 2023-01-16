@@ -14,39 +14,15 @@ APIHandler::APIHandler(const QString &hostUrl)
 }
 
 
-void APIHandler::GetFilesList()
+APIReply *APIHandler::GetFilesList()
 {
     const QString url = m_hostUrl + constants::FILES_ENDPOINT;
-    auto reply = m_networkManager->get(QNetworkRequest(url));
-    connect(reply, &QNetworkReply::finished, this, [reply, this]
-    {
-        if(reply->error() == QNetworkReply::NoError)
-        {
-            emit FilesListObtained(reply->readAll());
-        }
-        else
-        {
-            emit Error(reply->errorString());
-        }
-        reply->deleteLater();
-    });
+    return new APIReply(m_networkManager->get(QNetworkRequest(url)));
 }
 
 
-void APIHandler::DownloadFile(const QString &fileName)
+APIReply *APIHandler::DownloadFile(const QString &fileName)
 {
     const QString url = m_hostUrl + constants::DOWNLOAD_FILE_ENDPOINT + fileName;
-    auto reply = m_networkManager->get(QNetworkRequest(url));
-    connect(reply, &QNetworkReply::finished, this, [reply, fileName, this]
-    {
-        if(reply->error() == QNetworkReply::NoError)
-        {
-            emit FileObtained(reply->readAll(), fileName);
-        }
-        else
-        {
-            emit Error(reply->errorString());
-        }
-        reply->deleteLater();
-    });
+    return new APIReply(m_networkManager->get(QNetworkRequest(url)));
 }

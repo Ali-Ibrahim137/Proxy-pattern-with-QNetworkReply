@@ -13,9 +13,9 @@
 #define API_HANDLER_H
 
 // local
+#include "api_reply.h"
 
 // qt
-#include <QObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QString>
@@ -23,20 +23,13 @@
 // stdlib
 #include <memory>
 
-class APIHandler: public QObject
+class APIHandler
 {
-    Q_OBJECT
-
 public:
     APIHandler(const QString &hostUrl);
     ~APIHandler() = default;
-    void GetFilesList();
-    void DownloadFile(const QString &fileName);
-
-Q_SIGNALS:
-    void FilesListObtained(const QByteArray &data);
-    void FileObtained(const QByteArray &data, const QString &fileName);
-    void Error(const QString &message);
+    APIReply *GetFilesList();
+    APIReply *DownloadFile(const QString &fileName);
 
 private:
     QString m_hostUrl;

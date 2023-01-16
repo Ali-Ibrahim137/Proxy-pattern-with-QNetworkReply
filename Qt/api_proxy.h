@@ -16,7 +16,6 @@
 #include "api_handler.h"
 
 // qt
-#include <QObject>
 
 // stdlib
 #include <memory>
@@ -28,16 +27,8 @@ class APIProxy: public QObject
 public:
     APIProxy(const QString &hostUrl);
     ~APIProxy() = default;
-    void GetFilesList();
-    void DownloadFile(const QString &fileName);
-
-Q_SIGNALS:
-    void FilesListObtained(const QByteArray &data);
-    void FileObtained(const QByteArray &data);
-    void Error(const QString &message);
-
-private:
-    void InitializeConnections();
+    APIReply *GetFilesList();
+    APIReply *DownloadFile(const QString &fileName);
 
 private:
     std::unique_ptr<APIHandler> m_apiHandler;

@@ -1,6 +1,7 @@
 // local
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "api_reply.h"
 
 // qt
 #include <QJsonArray>
@@ -17,64 +18,69 @@ namespace constants
         const QString SUMMARY_KEY = "summary";
     }   // json_keys namespace
 } // constants namespace
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , m_apiProxy(std::make_unique<APIProxy>(constants::BASE_URL))
 {
     ui->setupUi(this);
-    InitializeConnections();
-    m_apiProxy->GetFilesList();
-}
-
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
-
-void MainWindow::InitializeConnections()
-{
-    // APIProxy connections
-    connect(m_apiProxy.get(), &APIProxy::FilesListObtained, this, [this](const QByteArray &data)
+    // Get Files
+    auto reply = m_apiProxy->GetFilesList();
+    connect(reply, &APIReply::finished, this, [reply, this]
     {
-        QJsonDocument doc = QJsonDocument::fromJson(data);
-        QJsonObject obj = doc.object();
-        for(auto &&key: obj.keys()) {
-            auto summary = obj.value(key).toObject()[constants::json_keys::SUMMARY_KEY].toString().toStdString();
-            ui->filesComboBox->addItem(key);
-            m_summaries.push_back(summary);
+        if(reply->error() == QNetworkReply::NoError)
+        {
+            auto data = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(data);
+            QJsonObject obj = doc.object();
+            for(auto &&key: obj.keys()) {
+                auto summary = obj.value(key).toObject()[constants::json_keys::SUMMARY_KEY].toString().toStdString();
+                ui->filesComboBox->addItem(key);
+                m_summaries.push_back(summary);
+            }
+            connect(ui->filesComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index)
+            {
+                ui->fileSummaryLabel->setText(QString::fromStdString(m_summaries[index]));
+            });
+        }
+        else
+        {
+            ui->statusbar->showMessage(reply->errorString(), constants::STATUS_BAR_TIMEOUT);
         }
         if(!m_summaries.empty())
         {
             ui->fileSummaryLabel->setText(QString::fromStdString(m_summaries[0]));
         }
-    });
-    connect(m_apiProxy.get(), &APIProxy::FileObtained, this, [this](const QByteArray &data)
-    {
-        // Do What ever you want with data now.
-        auto dataToDisplay = QString(data).left(std::min(constants::MAX_CONTENT_LENGTH, data.length()));
-        if(data.length() > constants::MAX_CONTENT_LENGTH)
-        {
-            dataToDisplay += "...";
-        }
-        ui->fileContent->setText(dataToDisplay);
-    });
-    connect(m_apiProxy.get(), &APIProxy::Error, this, [this](const QString &message)
-    {
-        ui->statusbar->showMessage(message, constants::STATUS_BAR_TIMEOUT);
-    });
-
-    // UI connections
-    connect(ui->filesComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index)
-    {
-        if(index < static_cast<int>(m_summaries.size()))
-        {
-            ui->fileSummaryLabel->setText(QString::fromStdString(m_summaries[index]));
-        }
+        reply->deleteLater();
     });
     connect(ui->downloadButton, &QPushButton::clicked, this, [this]()
     {
         auto fileName = ui->filesComboBox->currentText();
-        m_apiProxy->DownloadFile(fileName);
+        auto reply = m_apiProxy->DownloadFile(fileName);
+        connect(reply, &APIReply::finished, this, [this, reply]()
+        {
+            if(reply->error() == QNetworkReply::NoError)
+            {
+                auto data = reply->readAll();
+                // Do What ever you want with data now.
+                auto dataToDisplay = QString(data).left(std::min(constants::MAX_CONTENT_LENGTH, data.length()));
+                if(data.length() > constants::MAX_CONTENT_LENGTH)
+                {
+                    dataToDisplay += "...";
+                }
+                ui->fileContent->setText(dataToDisplay);
+            }
+            else
+            {
+                ui->statusbar->showMessage(reply->errorString(), constants::STATUS_BAR_TIMEOUT);
+            }
+            reply->deleteLater();
+        });
     });
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
 }

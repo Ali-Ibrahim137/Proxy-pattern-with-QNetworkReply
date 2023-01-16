@@ -4,49 +4,40 @@
 APIProxy::APIProxy(const QString &hostUrl)
 {
     m_apiHandler = std::make_unique<APIHandler>(hostUrl);
-    InitializeConnections();
 }
 
-void APIProxy::GetFilesList()
+APIReply *APIProxy::GetFilesList()
 {
     if(m_filesList.size() != 0)
     {
-        // Value is stored before, emit it as a signal.
-        emit FilesListObtained(m_filesList);
+        // Value is stored before, create APIReply with it.
+        return new APIReply(m_filesList);
     }
     else
     {
         // Call the endpoint.
-        m_apiHandler->GetFilesList();
+        auto reply = m_apiHandler->GetFilesList();
+        connect(reply, &APIReply::finished, this, [this, reply]
+        {
+            m_filesList = reply->readAll();
+        });
+        return reply;
     }
 }
 
-void APIProxy::DownloadFile(const QString &fileName)
+APIReply *APIProxy::DownloadFile(const QString &fileName)
 {
     if(auto iter = m_filesMap.find(fileName.toStdString()); iter != m_filesMap.end())
     {
-        emit FileObtained(iter->second);
+        return new APIReply(iter->second);
     }
     else
     {
-        m_apiHandler->DownloadFile(fileName);
+        auto reply = m_apiHandler->DownloadFile(fileName);
+        connect(reply, &APIReply::finished, this, [this, reply, fileName]
+        {
+            m_filesMap[fileName.toStdString()] = reply->readAll();
+        });
+        return reply;
     }
-}
-
-void APIProxy::InitializeConnections()
-{
-    connect(m_apiHandler.get(), &APIHandler::FilesListObtained, this, [this](const QByteArray &data)
-    {
-        m_filesList = data;             // Store the value.
-        emit FilesListObtained(data);   // Emit Signal.
-    });
-    connect(m_apiHandler.get(), &APIHandler::FileObtained, this, [this](const QByteArray &data, const QString &fileName)
-    {
-        m_filesMap[fileName.toStdString()] = data;
-        emit FileObtained(data);
-    });
-    connect(m_apiHandler.get(), &APIHandler::Error, this, [this](const QString &message)
-    {
-        emit Error(message);
-    });
 }
